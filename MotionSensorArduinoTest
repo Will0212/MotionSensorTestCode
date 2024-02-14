@@ -1,0 +1,54 @@
+const int signalPin = A0;
+const int powerPin = 2;
+int signal;
+// Parameters to deal with data transfer
+unsigned long lastSendTime = 0; // Last time data was sent 
+const long sendInterval = 100; // Send data every 100 ms
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(signalPin,INPUT);
+  pinMode(powerPin,OUTPUT);
+
+
+  digitalWrite(powerPin, LOW);
+  Serial.begin(115200);
+}
+
+void loop() {
+
+  readCommand();
+
+  signal = analogRead(signalPin);
+
+  updateSignal();
+
+}
+
+
+void readCommand()
+{
+  if (Serial.available() > 0)// Check if serial data is available 
+  {
+    String command = Serial.readStringUntil('\n');// Set command to the inputted command from the Webapp
+    if (command == "stop") 
+    {
+      digitalWrite(powerPin, LOW);
+    } 
+    else if (command == "start") 
+    {
+      digitalWrite(powerPin, HIGH);
+    }
+  }
+}
+
+void updateSignal()
+{
+  if (millis() - lastSendTime > sendInterval)// Check if the current time minus the last recorded time is greater than the predefined interval 
+    {
+      Serial.print("signal:");// If the condition is true, update the postion on the Webapp
+      Serial.println(signal);
+
+      lastSendTime = millis();// Update lastSendTime to the current time, resetting the timer for the next interval
+    }
+}
